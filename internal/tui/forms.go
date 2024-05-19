@@ -2,34 +2,11 @@ package tui
 
 import (
 	"fmt"
-	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
 )
 
-const maxWidth = 160
-
-type state int
-
-const (
-	statusNormal state = iota
-	stateDone
-)
-
-type EntryModel struct {
-	state  state
-	lg     *lipgloss.Renderer
-	styles *Styles
-	form   *huh.Form
-	width  int
-}
-
-func NewEntryModel() EntryModel {
-	m := EntryModel{width: maxWidth}
-	m.lg = lipgloss.DefaultRenderer()
-	m.styles = NewStyles(m.lg)
+func NewEntryForm() *huh.Form {
 
 	var levels = huh.NewOptions[int](1, 2, 3, 4, 5, 6, 7)
 
@@ -46,7 +23,7 @@ func NewEntryModel() EntryModel {
 	var startStrategy string
 	done := true
 
-	m.form = huh.NewForm(
+	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("What action are you considering?").Description("I am considering ...").
@@ -76,80 +53,9 @@ func NewEntryModel() EntryModel {
 				Negative("Wait, no").
 				Value(&done),
 		),
-	).
-		WithWidth(80).
+	).WithWidth(80).
 		WithShowHelp(true).
 		WithShowErrors(true)
-	return m
-}
 
-func (m EntryModel) Init() tea.Cmd {
-	return m.form.Init()
-}
-
-func min(x, y int) int {
-	if x > y {
-		return y
-	}
-	return x
-}
-
-func (m EntryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = min(msg.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc", "ctrl+c", "q":
-			return m, tea.Quit
-		}
-	}
-
-	var cmds []tea.Cmd
-
-	// Process the form
-	form, cmd := m.form.Update(msg)
-	if f, ok := form.(*huh.Form); ok {
-		m.form = f
-		cmds = append(cmds, cmd)
-	}
-
-	if m.form.State == huh.StateCompleted {
-		// Quit when the form is done.
-		cmds = append(cmds, tea.Quit)
-	}
-
-	return m, tea.Batch(cmds...)
-}
-
-func (m EntryModel) View() string {
-	s := m.styles
-
-	// Form (left side)
-	v := strings.TrimSuffix(m.form.View(), "\n\n")
-	form := m.lg.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(indigo).
-		Render(v)
-
-	// Status (right side)
-	var status string
-	{
-		const statusWidth = 80
-		status = s.Status.
-			Height(lipgloss.Height(v)).
-			Width(statusWidth).
-			Render(s.StatusHeader.Render("Current Build"))
-	}
-
-	_ = lipgloss.JoinHorizontal(lipgloss.Top, form, status)
-	return s.Base.Render(form)
-}
-
-func (m EntryModel) errorView() string {
-	var s string
-	for _, err := range m.form.Errors() {
-		s += err.Error()
-	}
-	return s
+	return form
 }
