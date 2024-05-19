@@ -98,11 +98,6 @@ func (m EntryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = min(msg.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc", "ctrl+c", "q":
-			return m, tea.Quit
-		}
 	}
 
 	var cmds []tea.Cmd
@@ -144,12 +139,4 @@ func (m EntryModel) View() string {
 
 	_ = lipgloss.JoinHorizontal(lipgloss.Top, form, status)
 	return s.Base.Render(form)
-}
-
-func (m EntryModel) errorView() string {
-	var s string
-	for _, err := range m.form.Errors() {
-		s += err.Error()
-	}
-	return s
 }
