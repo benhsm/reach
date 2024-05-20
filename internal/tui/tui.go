@@ -132,8 +132,9 @@ func (m Model) View() string {
 			BorderForeground(indigo).
 			Render(v)
 
-		return s.Base.Render(form)
+		return lipgloss.JoinVertical(lipgloss.Center, s.Base.Render(form), "ctrl-c to cancel form entry and go back.")
 	default:
-		return m.table.View()
+		help := "Help: 'a' to add a new possible action.\njk/↑↓ to change selection.\n'r' to reflect on a the highlighted action."
+		return lipgloss.JoinVertical(lipgloss.Center, m.table.View(), help)
 	}
 }
