@@ -41,7 +41,7 @@ func NewModel() Model {
 			Desc:          "Example action",
 			Difficulty:    4,
 			Notes:         "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit",
-			Status:        "pending",
+			Status:        action.StatusPending,
 			StartStrategy: "Sis dos amet",
 		},
 		{
@@ -49,7 +49,7 @@ func NewModel() Model {
 			Desc:          "Another action",
 			Difficulty:    6,
 			Notes:         "I'm scared of doing this because of X reason",
-			Status:        "done",
+			Status:        action.StatusDone,
 			StartStrategy: "Do the first thing",
 			OutcomeValue:  4,
 			Reflection:    "That wasn't as bad as I thought it would be",
