@@ -3,9 +3,11 @@ package tui
 import (
 	"strings"
 
+	"github.com/benhsm/reach/internal/action"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/evertras/bubble-table/table"
 )
 
 const maxWidth = 160
@@ -13,8 +15,8 @@ const maxWidth = 160
 type state int
 
 const (
-	tableView state = iota
-	entryView
+	tableFocus state = iota
+	entryFocus
 )
 
 type Model struct {
@@ -23,6 +25,9 @@ type Model struct {
 	styles    *Styles
 	entryForm *huh.Form
 	width     int
+
+	table   table.Model
+	actions []action.Action
 }
 
 func NewModel() Model {
@@ -30,7 +35,29 @@ func NewModel() Model {
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 
+	actions := []*action.Action{
+		{
+			ID:            1,
+			Desc:          "Example action",
+			Difficulty:    4,
+			Notes:         "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit",
+			Status:        "pending",
+			StartStrategy: "Sis dos amet",
+		},
+		{
+			ID:            2,
+			Desc:          "Another action",
+			Difficulty:    6,
+			Notes:         "I'm scared of doing this because of X reason",
+			Status:        "done",
+			StartStrategy: "Do the first thing",
+			OutcomeValue:  4,
+			Reflection:    "That wasn't as bad as I thought it would be",
+		},
+	}
+
 	m.entryForm = NewEntryForm()
+	m.table = NewTable(actions)
 	return m
 }
 
@@ -53,7 +80,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch m.state {
-	case entryView:
+	case entryFocus:
 		// Process the form
 		form, cmd := m.entryForm.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
@@ -62,10 +89,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.entryForm.State == huh.StateCompleted {
 			// TODO: do something with the submitted data
-			m.state = tableView
+			m.state = tableFocus
 		}
 		if m.entryForm.State == huh.StateAborted {
-			m.state = tableView
+			m.state = tableFocus
 		}
 	default:
 		switch msg := msg.(type) {
@@ -75,7 +102,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			case "a":
 				m.entryForm = NewEntryForm()
-				m.state = entryView
+				m.state = entryFocus
 				cmds = append(cmds, m.entryForm.Init())
 			}
 		}
@@ -87,7 +114,7 @@ func (m Model) View() string {
 	s := m.styles
 
 	switch m.state {
-	case entryView:
+	case entryFocus:
 		v := strings.TrimSuffix(m.entryForm.View(), "\n\n")
 		form := m.lg.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -96,6 +123,6 @@ func (m Model) View() string {
 
 		return s.Base.Render(form)
 	default:
-		return "you're looking at what's going to be the table view. Hit 'a' to add an action"
+		return m.table.View()
 	}
 }
