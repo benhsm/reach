@@ -17,14 +17,13 @@ const (
 
 func NewTable(actions []action.Action) table.Model {
 	columns := []table.Column{
-		// TODO: all the column widths here are guesses that need adjustment
-		table.NewColumn(columnKeyDesc, columnKeyDesc, 20),
-		table.NewColumn(columnKeyDifficulty, "difficulty", 10),
-		table.NewColumn(columnKeyNotes, columnKeyNotes, 20),
-		table.NewColumn(columnKeyStart, columnKeyStart, 20),
-		table.NewColumn(columnKeyOutcomeValue, columnKeyOutcomeValue, 10),
-		table.NewColumn(columnKeyReflection, columnKeyReflection, 20),
-		table.NewColumn(columnKeyStatus, columnKeyStatus, 10),
+		table.NewFlexColumn(columnKeyDesc, columnKeyDesc, 2),
+		table.NewFlexColumn(columnKeyDifficulty, "difficulty", 1),
+		table.NewFlexColumn(columnKeyNotes, columnKeyNotes, 4),
+		table.NewFlexColumn(columnKeyStart, columnKeyStart, 3),
+		table.NewFlexColumn(columnKeyOutcomeValue, columnKeyOutcomeValue, 1),
+		table.NewFlexColumn(columnKeyReflection, columnKeyReflection, 3),
+		table.NewFlexColumn(columnKeyStatus, columnKeyStatus, 1),
 	}
 
 	rows := []table.Row{}
@@ -45,7 +44,8 @@ func NewTable(actions []action.Action) table.Model {
 	tableModel := table.New(columns).
 		WithRows(rows).
 		Focused(true).
-		WithMultiline(true)
+		WithMultiline(true).
+		WithTargetWidth(100)
 
 	return tableModel
 }
