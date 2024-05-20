@@ -101,7 +101,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.entryForm.State == huh.StateAborted {
 			m.state = tableFocus
 		}
-	default:
+	default: // table view
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
@@ -111,6 +111,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.entryForm = NewEntryForm()
 				m.state = entryFocus
 				cmds = append(cmds, m.entryForm.Init())
+			default:
+				table, cmd := m.table.Update(msg)
+				m.table = table
+				cmds = append(cmds, cmd)
 			}
 		}
 	}
