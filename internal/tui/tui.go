@@ -81,7 +81,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 		if m.entryForm.State == huh.StateCompleted {
-			// TODO: do something with the submitted data
+			var lastActionId int64
+			l := len(m.actions)
+			if l != 0 {
+				lastActionId = m.actions[l-1].ID
+			}
+			a := action.Action{
+				ID:            lastActionId + 1,
+				Status:        action.StatusPending,
+				Notes:         m.entryForm.GetString(KeyThoughts),
+				StartStrategy: m.entryForm.GetString(KeyStrategy),
+				Difficulty:    m.entryForm.GetInt(KeyDifficulty),
+				Desc:          m.entryForm.GetString(KeyAction),
+			}
+			m.actions = append(m.actions, a)
+			m.table = NewTable(m.actions)
 			m.state = tableFocus
 		}
 		if m.entryForm.State == huh.StateAborted {

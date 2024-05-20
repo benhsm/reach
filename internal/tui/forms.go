@@ -6,6 +6,14 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
+const (
+	KeyAction string = "action"
+	KeyDifficulty = "difficulty"
+	KeyThoughts = "thoughts"
+	KeyStrategy = "strategy"
+	KeyDone = "done"
+)
+
 func NewEntryForm() *huh.Form {
 
 	var levels = huh.NewOptions[int](1, 2, 3, 4, 5, 6, 7)
@@ -26,22 +34,25 @@ func NewEntryForm() *huh.Form {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
+				Key(KeyAction).
 				Title("What action are you considering?").Description("I am considering ...").
 				Prompt("> ").
 				Value(&action),
 			huh.NewSelect[int]().
-				Key("Level of difficulty").
+				Key(KeyDifficulty).
 				Options(levels...).
 				Title("How hard does this seem, from 1 - 7?").
 				Description("Choose one of the following"),
 			huh.NewText().
+				Key(KeyThoughts).
 				Title("What thoughts and feelings come to mind\nas you anticipate doing this?").Placeholder("write here ...").
 				Value(&thoughts).CharLimit(-1),
 			huh.NewText().
+				Key(KeyStrategy).
 				Title("How would you start?").Placeholder("write here ...").
 				Value(&startStrategy).CharLimit(-1),
 			huh.NewConfirm().
-				Key("done").
+				Key(KeyDone).
 				Title("All done?").
 				Validate(func(v bool) error {
 					if !v {
