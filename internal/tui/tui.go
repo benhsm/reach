@@ -35,7 +35,7 @@ func NewModel() Model {
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 
-	actions := []*action.Action{
+	actions := []action.Action{
 		{
 			ID:            1,
 			Desc:          "Example action",

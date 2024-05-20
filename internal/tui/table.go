@@ -15,7 +15,7 @@ const (
 	columnKeyStatus       = "status"
 )
 
-func NewTable(actions []*action.Action) table.Model {
+func NewTable(actions []action.Action) table.Model {
 	columns := []table.Column{
 		// TODO: all the column widths here are guesses that need adjustment
 		table.NewColumn(columnKeyDesc, columnKeyDesc, 20),
