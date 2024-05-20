@@ -65,13 +65,6 @@ func (m Model) Init() tea.Cmd {
 	return m.entryForm.Init()
 }
 
-func min(x, y int) int {
-	if x > y {
-		return y
-	}
-	return x
-}
-
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if v, ok := msg.(tea.WindowSizeMsg); ok {
 		m.width = min(v.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
