@@ -114,7 +114,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			res, err := m.db.Exec(
-				"INSERT INTO Action (status, desc, difficulty, notes, start_strategy, reflection, outcome) VALUES (?, ?, ?, ?, ?, ?, ?)",
+				`INSERT INTO Action (
+					status,
+					desc,
+					difficulty,
+					notes,
+					start_strategy,
+					reflection,
+					outcome
+				) VALUES (?, ?, ?, ?, ?, ?, ?)`,
 				a.Status,
 				a.Desc,
 				a.Difficulty,
