@@ -3,6 +3,7 @@ package tui
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/benhsm/reach/internal/action"
@@ -36,35 +37,73 @@ type Model struct {
 	db *sql.DB
 }
 
-func NewModel(db *sql.DB) Model {
+type errorWrap struct {
+	context string
+	err     error
+}
+
+func (ew errorWrap) Error() string {
+	return fmt.Sprintf("%s\n\n%s", ew.context, ew.err.Error())
+}
+
+func NewModel(db *sql.DB) (*Model, error) {
 	m := Model{width: maxWidth, db: db}
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 
-	m.actions = []action.Action{
-		{
-			ID:            1,
-			Desc:          "Example action",
-			Difficulty:    4,
-			Notes:         "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit",
-			Status:        action.StatusPending,
-			StartStrategy: "Sis dos amet",
-		},
-		{
-			ID:            2,
-			Desc:          "Another action",
-			Difficulty:    6,
-			Notes:         "I'm scared of doing this because of X reason",
-			Status:        action.StatusDone,
-			StartStrategy: "Do the first thing",
-			OutcomeValue:  4,
-			Reflection:    "That wasn't as bad as I thought it would be",
-		},
+	var actions []action.Action
+	rows, err := db.Query("SELECT * FROM Action")
+	if err != nil {
+		log.Fatal("Could not load actions from the database")
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var action action.Action
+		if err := rows.Scan(
+			&action.ID,
+			&action.Status,
+			&action.Desc,
+			&action.Difficulty,
+			&action.Notes,
+			&action.StartStrategy,
+			&action.Reflection,
+			&action.OutcomeValue,
+		); err != nil {
+			return nil, errorWrap{"Couldn't load a row", err}
+		}
+		actions = append(actions, action)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	m.actions = actions
+
+	// []action.Action{
+	// 	{
+	// 		ID:            1,
+	// 		Desc:          "Example action",
+	// 		Difficulty:    4,
+	// 		Notes:         "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit",
+	// 		Status:        action.StatusPending,
+	// 		StartStrategy: "Sis dos amet",
+	// 	},
+	// 	{
+	// 		ID:            2,
+	// 		Desc:          "Another action",
+	// 		Difficulty:    6,
+	// 		Notes:         "I'm scared of doing this because of X reason",
+	// 		Status:        action.StatusDone,
+	// 		StartStrategy: "Do the first thing",
+	// 		OutcomeValue:  4,
+	// 		Reflection:    "That wasn't as bad as I thought it would be",
+	// 	},
+	// }
 
 	m.entryForm = NewEntryForm()
 	m.table = NewTable(m.actions)
-	return m
+	return &m, nil
 }
 
 func (m Model) Init() tea.Cmd {
@@ -87,19 +126,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 		if m.entryForm.State == huh.StateCompleted {
-			var lastActionId int64
-			l := len(m.actions)
-			if l != 0 {
-				lastActionId = m.actions[l-1].ID
-			}
 			a := action.Action{
-				ID:            lastActionId + 1,
 				Status:        action.StatusPending,
 				Notes:         m.entryForm.GetString(KeyThoughts),
 				StartStrategy: m.entryForm.GetString(KeyStrategy),
 				Difficulty:    m.entryForm.GetInt(KeyDifficulty),
 				Desc:          m.entryForm.GetString(KeyAction),
 			}
+
+			res, err := m.db.Exec(
+				"INSERT INTO Action (status, desc, difficulty, notes, start_strategy, reflection, outcome) VALUES (?, ?, ?, ?, ?, ?, ?)",
+				a.Status,
+				a.Desc,
+				a.Difficulty,
+				a.Notes,
+				a.StartStrategy,
+				a.Reflection,
+				a.OutcomeValue,
+			)
+			if err != nil {
+				log.Fatalf("Coudn't insert an action because of the following err\n\n%s", err)
+			}
+			id, err := res.LastInsertId()
+			if err != nil {
+				log.Fatalf("Couldn't get last insert id from the database")
+			}
+			a.ID = id
+
 			m.actions = append(m.actions, a)
 			m.table = NewTable(m.actions)
 			m.state = tableFocus

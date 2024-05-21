@@ -17,7 +17,11 @@ func main() {
 	}
 	defer db.Close()
 
-	_, err = tea.NewProgram(tui.NewModel(db)).Run()
+	model, err := tui.NewModel(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = tea.NewProgram(model).Run()
 	if err != nil {
 		log.Fatal(err)
 	}
