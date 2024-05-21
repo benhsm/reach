@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -31,10 +32,12 @@ type Model struct {
 
 	table   table.Model
 	actions []action.Action
+
+	db *sql.DB
 }
 
-func NewModel() Model {
-	m := Model{width: maxWidth}
+func NewModel(db *sql.DB) Model {
+	m := Model{width: maxWidth, db: db}
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 
