@@ -156,9 +156,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.reflectionForm.State == huh.StateCompleted {
 			idx := m.table.GetHighlightedRowIndex()
-			m.actions[idx].OutcomeValue = m.reflectionForm.GetInt(KeyOutcomeValue)
-			m.actions[idx].Reflection = m.reflectionForm.GetString(KeyReflection)
-			m.actions[idx].Status = action.StatusDone
+			a := &m.actions[idx]
+
+			a.OutcomeValue = m.reflectionForm.GetInt(KeyOutcomeValue)
+			a.Reflection = m.reflectionForm.GetString(KeyReflection)
+			a.Status = action.StatusDone
+
+			_, err := m.db.Exec(
+				`
+				UPDATE Action SET
+					outcome = ?,
+					reflection = ?,
+					status = ?
+				WHERE id = ?
+				`,
+				a.OutcomeValue,
+				a.Reflection,
+				a.Status,
+				a.ID,
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			m.table = NewTable(m.actions)
 			m.state = tableFocus
 		}
