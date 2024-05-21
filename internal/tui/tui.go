@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/benhsm/reach/internal/action"
@@ -164,12 +165,30 @@ func (m Model) View() string {
 			BorderForeground(indigo).
 			Render(v)
 
-		return lipgloss.JoinVertical(lipgloss.Center, s.Base.Render(form), "ctrl-c to cancel form entry and go back.")
+		left := lipgloss.JoinVertical(lipgloss.Center, form, "ctrl-c to cancel form entry and go back.")
+
+		idx := m.table.GetHighlightedRowIndex()
+		selectedAction := m.actions[idx]
+		right := m.lg.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(indigo).
+			Width(40).
+			Height(lipgloss.Height(left)).
+			Render(displayAction(selectedAction))
+		return s.Base.Render(lipgloss.JoinHorizontal(lipgloss.Top, left, right))
 	default:
 		help := `Help: 'a' to add a new possible action.
 jk/↑↓ to change selection.
 'r' to reflect on a the highlighted action.
 'q' to quit`
-		return lipgloss.JoinVertical(lipgloss.Center, m.table.View(), help)
+		return s.Base.Render(lipgloss.JoinVertical(lipgloss.Bottom, m.table.View(), help))
 	}
+}
+
+func displayAction(a action.Action) string {
+	return fmt.Sprintf(
+		`Action: %s
+Predicted Difficulty: %d
+Notes: %s
+`, a.Desc, a.Difficulty, a.Notes)
 }
