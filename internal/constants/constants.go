@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS Action (
     desc TEXT NOT NULL,
     difficulty INTEGER NOT NULL,
     notes TEXT NOT NULL,
+    start_strategy TEXT NOT NULL,
     reflection TEXT NOT NULL,
     outcome_value INTEGER NOT NULL
 );
