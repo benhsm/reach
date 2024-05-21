@@ -173,7 +173,7 @@ func (m Model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(indigo).
 			Width(40).
-			Height(lipgloss.Height(left)).
+			Height(lipgloss.Height(v)).
 			Render(displayAction(selectedAction))
 		return s.Base.Render(lipgloss.JoinHorizontal(lipgloss.Top, left, right))
 	default:
