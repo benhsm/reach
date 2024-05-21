@@ -1,16 +1,16 @@
 package action
 
-type status int
+type Status int
 
 const (
-	StatusPending status = iota
+	StatusPending Status = iota
 	StatusDone
 	StatusCancelled
 )
 
 type Action struct {
 	ID     int64
-	Status status // pending, done, cancelled
+	Status Status // pending, done, cancelled
 
 	Desc          string // short description of what the action is
 	Difficulty    int    // rating from 1 to 7

@@ -17,14 +17,16 @@ type state int
 const (
 	tableFocus state = iota
 	entryFocus
+	reflectionFocus
 )
 
 type Model struct {
-	state     state
-	lg        *lipgloss.Renderer
-	styles    *Styles
-	entryForm *huh.Form
-	width     int
+	state          state
+	lg             *lipgloss.Renderer
+	styles         *Styles
+	entryForm      *huh.Form
+	reflectionForm *huh.Form
+	width          int
 
 	table   table.Model
 	actions []action.Action
@@ -35,7 +37,7 @@ func NewModel() Model {
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
 
-	actions := []action.Action{
+	m.actions = []action.Action{
 		{
 			ID:            1,
 			Desc:          "Example action",
@@ -57,7 +59,7 @@ func NewModel() Model {
 	}
 
 	m.entryForm = NewEntryForm()
-	m.table = NewTable(actions)
+	m.table = NewTable(m.actions)
 	return m
 }
 
@@ -101,6 +103,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.entryForm.State == huh.StateAborted {
 			m.state = tableFocus
 		}
+	case reflectionFocus:
+		// Process the form
+		form, cmd := m.reflectionForm.Update(msg)
+		if f, ok := form.(*huh.Form); ok {
+			m.entryForm = f
+			cmds = append(cmds, cmd)
+		}
+		if m.reflectionForm.State == huh.StateCompleted {
+			idx := m.table.GetHighlightedRowIndex()
+			m.actions[idx].OutcomeValue = m.reflectionForm.GetInt(KeyOutcomeValue)
+			m.actions[idx].Reflection = m.reflectionForm.GetString(KeyReflection)
+			m.actions[idx].Status = action.StatusDone
+			m.table = NewTable(m.actions)
+			m.state = tableFocus
+		}
+		if m.reflectionForm.State == huh.StateAborted {
+			m.state = tableFocus
+		}
 	default: // table view
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
@@ -111,6 +131,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.entryForm = NewEntryForm()
 				m.state = entryFocus
 				cmds = append(cmds, m.entryForm.Init())
+			case "r":
+				m.reflectionForm = NewReflectionForm()
+				m.state = reflectionFocus
+				cmds = append(cmds, m.reflectionForm.Init())
 			default:
 				table, cmd := m.table.Update(msg)
 				m.table = table
@@ -133,8 +157,19 @@ func (m Model) View() string {
 			Render(v)
 
 		return lipgloss.JoinVertical(lipgloss.Center, s.Base.Render(form), "ctrl-c to cancel form entry and go back.")
+	case reflectionFocus:
+		v := strings.TrimSuffix(m.reflectionForm.View(), "\n\n")
+		form := m.lg.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(indigo).
+			Render(v)
+
+		return lipgloss.JoinVertical(lipgloss.Center, s.Base.Render(form), "ctrl-c to cancel form entry and go back.")
 	default:
-		help := "Help: 'a' to add a new possible action.\njk/↑↓ to change selection.\n'r' to reflect on a the highlighted action."
+		help := `Help: 'a' to add a new possible action.
+jk/↑↓ to change selection.
+'r' to reflect on a the highlighted action.
+'q' to quit`
 		return lipgloss.JoinVertical(lipgloss.Center, m.table.View(), help)
 	}
 }

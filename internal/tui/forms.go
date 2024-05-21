@@ -7,11 +7,13 @@ import (
 )
 
 const (
-	KeyAction string = "action"
-	KeyDifficulty = "difficulty"
-	KeyThoughts = "thoughts"
-	KeyStrategy = "strategy"
-	KeyDone = "done"
+	KeyAction       string = "action"
+	KeyDifficulty          = "difficulty"
+	KeyThoughts            = "thoughts"
+	KeyStrategy            = "strategy"
+	KeyDone                = "done"
+	KeyOutcomeValue        = "outcome"
+	KeyReflection          = "reflection"
 )
 
 func NewEntryForm() *huh.Form {
@@ -51,6 +53,53 @@ func NewEntryForm() *huh.Form {
 				Key(KeyStrategy).
 				Title("How would you start?").Placeholder("write here ...").
 				Value(&startStrategy).CharLimit(-1),
+			huh.NewConfirm().
+				Key(KeyDone).
+				Title("All done?").
+				Validate(func(v bool) error {
+					if !v {
+						return fmt.Errorf("Take your time and reflect.")
+					}
+					return nil
+				}).
+				Affirmative("Yep").
+				Negative("Wait, no").
+				Value(&done),
+		),
+	).WithWidth(80).
+		WithShowHelp(true).
+		WithShowErrors(true)
+
+	return form
+}
+
+func NewReflectionForm() *huh.Form {
+
+	// TODO: need to do some thinking about how this value is actually
+	// supposed to relate to the predicted difficulty of the action
+	var levels = huh.NewOptions[int](1, 2, 3, 4, 5, 6, 7)
+	levels[0].Key = "1 - That was really fun."
+	levels[1].Key = "2 - ."
+	levels[2].Key = "3 - ."
+	levels[3].Key = "4 - ."
+	levels[4].Key = "5 - ."
+	levels[5].Key = "6 - ."
+	levels[6].Key = "7 - That was horrible."
+
+	var reflections string
+	done := true
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[int]().
+				Key(KeyOutcomeValue).
+				Options(levels...).
+				Title("How hard was this actually, from 1 - 7?").
+				Description("Choose one of the following"),
+			huh.NewText().
+				Key(KeyReflection).
+				Title("What was it like for you, doing this?").Placeholder("write here ...").
+				Value(&reflections).CharLimit(-1),
 			huh.NewConfirm().
 				Key(KeyDone).
 				Title("All done?").
