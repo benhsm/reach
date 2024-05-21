@@ -80,27 +80,6 @@ func NewModel(db *sql.DB) (*Model, error) {
 
 	m.actions = actions
 
-	// []action.Action{
-	// 	{
-	// 		ID:            1,
-	// 		Desc:          "Example action",
-	// 		Difficulty:    4,
-	// 		Notes:         "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit",
-	// 		Status:        action.StatusPending,
-	// 		StartStrategy: "Sis dos amet",
-	// 	},
-	// 	{
-	// 		ID:            2,
-	// 		Desc:          "Another action",
-	// 		Difficulty:    6,
-	// 		Notes:         "I'm scared of doing this because of X reason",
-	// 		Status:        action.StatusDone,
-	// 		StartStrategy: "Do the first thing",
-	// 		OutcomeValue:  4,
-	// 		Reflection:    "That wasn't as bad as I thought it would be",
-	// 	},
-	// }
-
 	m.entryForm = NewEntryForm()
 	m.table = NewTable(m.actions)
 	return &m, nil
