@@ -1,7 +1,5 @@
 package constants
 
-const DatabasePath = "./reach.db"
-
 const SqlPrep = `
 CREATE TABLE IF NOT EXISTS Action (
     id INTEGER PRIMARY KEY,
